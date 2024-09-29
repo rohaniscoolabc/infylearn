@@ -1,8 +1,8 @@
 import streamlit as st
-from transformers import pipeline
+import openai
 
-# Load pre-trained question-answering model (using Huggingface pipeline)
-qa_pipeline = pipeline("question-answering")
+# Set your OpenAI API key
+openai.api_key = "your_openai_api_key_here"
 
 # Set the title and header of the web application
 st.set_page_config(page_title="Placement Query Bot", layout="wide")
@@ -20,24 +20,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Function to interact with OpenAI GPT
+def get_openai_response(query):
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # You can use GPT-4 if it's available
+        prompt=query,
+        max_tokens=200,
+        temperature=0.7,
+    )
+    return response.choices[0].text.strip()
+
 # Placeholder for the user to enter queries
 st.write("Ask any question regarding placements, and I will do my best to assist you.")
 
 query = st.text_input("Enter your query:", help="E.g., What is the eligibility criteria for placement?")
-context = """
-Placement queries can vary, including eligibility criteria, placement process, company requirements, deadlines, and interview preparation. 
-We support queries such as:
-- What companies are visiting the campus this year?
-- What are the eligibility criteria for placements?
-- How should I prepare for interviews?
-- What is the last date to register for placements?
-"""
 
-# If the user inputs a query, use the question-answering model to find the answer
+# If the user inputs a query, use the OpenAI API to get a real-time answer
 if query:
-    # Process query using QA model
-    response = qa_pipeline({'question': query, 'context': context})
-    answer = response['answer']
+    with st.spinner("Processing your query..."):
+        answer = get_openai_response(query)
     
     # Display the answer
     st.markdown(f"**Query**: {query}")
